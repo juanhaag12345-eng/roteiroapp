@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VendRoute — Cadastro</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>⚙️ Cadastro</h1>
+    <nav><a href="/">início</a><a href="/vendedor.html">vendedor</a><a href="/gestor.html">gestor</a></nav>
+  </header>
+  <main>
+    <div class="row">
+      <div class="col card">
+        <h3 style="margin-top:0">Novo vendedor</h3>
+        <form id="formVendedor">
+          <label>Nome</label>
+          <input type="text" id="vNome" required />
+          <label>E-mail</label>
+          <input type="email" id="vEmail" />
+          <label>Cor no mapa</label>
+          <input type="text" id="vCor" placeholder="#457b9d" value="#457b9d" />
+          <label>Endereço de partida (base do vendedor)</label>
+          <input type="text" id="vOrigem" placeholder="Rua, número, cidade - UF" required />
+          <button type="submit">Cadastrar vendedor</button>
+          <div id="msgVendedor"></div>
+        </form>
+      </div>
+
+      <div class="col card">
+        <h3 style="margin-top:0">Novo cliente</h3>
+        <form id="formCliente">
+          <label>Nome do cliente</label>
+          <input type="text" id="cNome" required />
+          <label>Endereço completo</label>
+          <input type="text" id="cEndereco" placeholder="Rua, número, cidade - UF" required />
+          <button type="submit">Cadastrar cliente</button>
+          <div id="msgCliente"></div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0">Agenda semanal (quem visita quem, em qual dia)</h3>
+      <form id="formVisita" class="row" style="align-items:flex-end">
+        <div class="col">
+          <label>Vendedor</label>
+          <select id="vsVendedor"></select>
+        </div>
+        <div class="col">
+          <label>Cliente</label>
+          <select id="vsCliente"></select>
+        </div>
+        <div class="col">
+          <label>Dia</label>
+          <select id="vsDia">
+            <option value="seg">Segunda-feira</option>
+            <option value="ter">Terça-feira</option>
+            <option value="qua">Quarta-feira</option>
+            <option value="qui">Quinta-feira</option>
+            <option value="sex">Sexta-feira</option>
+            <option value="sab">Sábado</option>
+          </select>
+        </div>
+        <div class="col" style="max-width:220px">
+          <button type="submit">Adicionar visita</button>
+        </div>
+      </form>
+      <div id="msgVisita"></div>
+    </div>
+
+    <div class="row">
+      <div class="col card">
+        <h3 style="margin-top:0">Vendedores cadastrados</h3>
+        <table id="tblVendedores"><thead><tr><th>Nome</th><th>Base</th><th></th></tr></thead><tbody></tbody></table>
+      </div>
+      <div class="col card">
+        <h3 style="margin-top:0">Clientes cadastrados</h3>
+        <table id="tblClientes"><thead><tr><th>Nome</th><th>Endereço</th><th></th></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0">Agenda cadastrada</h3>
+      <table id="tblVisitas"><thead><tr><th>Vendedor</th><th>Cliente</th><th>Dia</th><th></th></tr></thead><tbody></tbody></table>
+    </div>
+  </main>
+
+  <script src="/js/cadastro.js"></script>
+</body>
+</html>

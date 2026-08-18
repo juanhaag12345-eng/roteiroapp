@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VendRoute — Protótipo</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>🧭 VendRoute — Protótipo</h1>
+  </header>
+  <main>
+    <div class="card">
+      <h2 style="margin-top:0">Roteirização de vendedores + rastreamento em tempo real</h2>
+      <p class="small">
+        Este é um protótipo funcional para validar a ideia: cadastro de vendedores e clientes,
+        cálculo automático da melhor rota do dia, e acompanhamento da localização dos vendedores
+        em tempo real pelo gestor.
+      </p>
+    </div>
+
+    <div class="row">
+      <div class="col card">
+        <h3>📍 Sou vendedor(a)</h3>
+        <p class="small">Ver a rota otimizada do dia e compartilhar minha localização.</p>
+        <a href="/vendedor.html"><button>Abrir tela do vendedor</button></a>
+      </div>
+      <div class="col card">
+        <h3>🗺️ Sou gestor(a)</h3>
+        <p class="small">Acompanhar todos os vendedores no mapa em tempo real.</p>
+        <a href="/gestor.html"><button>Abrir painel do gestor</button></a>
+      </div>
+      <div class="col card">
+        <h3>⚙️ Cadastro</h3>
+        <p class="small">Cadastrar vendedores, clientes e a agenda semanal de visitas.</p>
+        <a href="/cadastro.html"><button class="secundario">Abrir cadastro</button></a>
+      </div>
+    </div>
+
+    <div class="card small">
+      <strong>Como testar o rastreamento em tempo real:</strong> abra a tela do vendedor no seu
+      celular (mesma rede Wi-Fi do computador) e a tela do gestor no computador. Ao iniciar o
+      rastreamento no celular, o ponto aparece se movendo ao vivo no mapa do gestor.
+    </div>
+  </main>
+</body>
+</html>

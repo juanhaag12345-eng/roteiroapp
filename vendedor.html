@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VendRoute — Vendedor</title>
+  <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>📍 Rota do vendedor</h1>
+    <nav><a href="/">início</a><a href="/gestor.html">painel do gestor</a></nav>
+  </header>
+  <main>
+    <div class="card">
+      <div class="row">
+        <div class="col">
+          <label for="selVendedor">Vendedor</label>
+          <select id="selVendedor"></select>
+        </div>
+        <div class="col">
+          <label for="selDia">Dia de atendimento</label>
+          <select id="selDia"></select>
+        </div>
+      </div>
+      <button id="btnTracar">Traçar melhor rota</button>
+      <div id="msgRota"></div>
+      <div class="stat-row" id="statsRota" style="display:none">
+        <div class="stat"><strong id="statDistancia">–</strong>distância estimada</div>
+        <div class="stat"><strong id="statDuracao">–</strong>tempo estimado</div>
+        <div class="stat"><strong id="statParadas">–</strong>paradas</div>
+        <div class="stat"><strong id="statFonte">–</strong>cálculo</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div id="mapa"></div>
+      <ol class="lista-paradas" id="listaParadas"></ol>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0">📡 Rastreamento em tempo real</h3>
+      <p class="small">Compartilhe sua localização para o gestor acompanhar ao vivo no painel.</p>
+      <div class="row">
+        <div class="col">
+          <label><input type="radio" name="modoRastreio" value="gps" checked /> Usar GPS real do celular</label>
+          <label><input type="radio" name="modoRastreio" value="sim" /> Simular movimento ao longo da rota</label>
+        </div>
+      </div>
+      <button id="btnIniciar">Iniciar rastreamento</button>
+      <button id="btnParar" class="secundario" disabled>Parar</button>
+      <div id="msgRastreio"></div>
+    </div>
+  </main>
+
+  <script src="/vendor/leaflet/leaflet.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/vendedor.js"></script>
+</body>
+</html>

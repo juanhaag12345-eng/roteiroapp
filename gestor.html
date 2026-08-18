@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VendRoute — Painel do Gestor</title>
+  <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>🗺️ Painel do gestor</h1>
+    <nav><a href="/">início</a><a href="/vendedor.html">tela do vendedor</a></nav>
+  </header>
+  <main>
+    <div class="row">
+      <div class="col card" style="flex:2; min-width:320px">
+        <div id="mapaGestor"></div>
+      </div>
+      <div class="col card" style="flex:1; min-width:280px">
+        <h3 style="margin-top:0">Vendedores</h3>
+        <div id="listaVendedores"></div>
+
+        <hr style="margin:16px 0;border:none;border-top:1px solid var(--borda)" />
+
+        <h3>Ver rota planejada</h3>
+        <label for="selDiaGestor">Dia</label>
+        <select id="selDiaGestor"></select>
+        <button id="btnVerRota" class="secundario">Mostrar rota do vendedor selecionado</button>
+        <div id="msgRotaGestor"></div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/vendor/leaflet/leaflet.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/gestor.js"></script>
+</body>
+</html>
