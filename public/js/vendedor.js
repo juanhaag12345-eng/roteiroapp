@@ -10,6 +10,7 @@ const selDia = document.getElementById('selDia');
 const msgRota = document.getElementById('msgRota');
 const listaParadas = document.getElementById('listaParadas');
 const statsRota = document.getElementById('statsRota');
+const erroRastreio = document.getElementById('erroRastreio');
 
 let map, origemLayer, paradasLayer, linhaLayer, minhaLocLayer;
 let vendedores = [];
@@ -120,10 +121,11 @@ async function tracarRota() {
   }
 }
 
-// ---------------- rastreamento em tempo real (sempre ativo, sem UI) ----------------
-// Nao ha botao de ligar/desligar nem indicador visual: assim que um vendedor e
-// identificado nesta tela, o rastreamento por GPS comeca automaticamente e fica
-// ativo enquanto a aba estiver aberta, para o gestor poder acompanhar quando quiser.
+// ---------------- rastreamento em tempo real (sempre ativo, sem UI de sucesso) ----------------
+// Nao ha botao de ligar/desligar: assim que um vendedor e identificado nesta
+// tela, o rastreamento por GPS comeca automaticamente e fica ativo enquanto a
+// aba estiver aberta. So aparece um aviso na tela se o GPS realmente falhar
+// (permissao negada, sem sinal, etc.) -- quando esta funcionando, fica silencioso.
 
 function garantirSocket() {
   if (!socket) socket = io();
@@ -140,6 +142,26 @@ function marcarMinhaLocalizacao(lat, lng) {
   }
 }
 
+function mostrarErroGPS(err) {
+  if (!erroRastreio) return;
+  let msg;
+  if (err.code === 1) {
+    msg = 'Permissao de localizacao negada. Va nas configuracoes do navegador (ou do celular) e permita o acesso a localizacao para este site, depois recarregue a pagina.';
+  } else if (err.code === 2) {
+    msg = 'Nao foi possivel obter sua localizacao agora. Verifique se o GPS do celular esta ligado.';
+  } else {
+    msg = 'Tempo esgotado tentando obter sua localizacao. Verifique o GPS e a conexao do celular.';
+  }
+  erroRastreio.textContent = 'Rastreamento: ' + msg;
+  erroRastreio.style.display = 'block';
+}
+
+function esconderErroGPS() {
+  if (!erroRastreio) return;
+  erroRastreio.style.display = 'none';
+  erroRastreio.textContent = '';
+}
+
 function pararRastreio() {
   if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
   if (socket && vendedorRastreado) socket.emit('vendedor:offline', { vendedorId: vendedorRastreado });
@@ -148,7 +170,16 @@ function pararRastreio() {
 
 function iniciarRastreioAutomatico(vendedorId) {
   pararRastreio();
-  if (!vendedorId || !('geolocation' in navigator)) return;
+  esconderErroGPS();
+  if (!vendedorId) return;
+
+  if (!('geolocation' in navigator)) {
+    if (erroRastreio) {
+      erroRastreio.textContent = 'Rastreamento: este navegador nao suporta compartilhamento de localizacao.';
+      erroRastreio.style.display = 'block';
+    }
+    return;
+  }
 
   vendedorRastreado = vendedorId;
   const s = garantirSocket();
@@ -157,9 +188,11 @@ function iniciarRastreioAutomatico(vendedorId) {
       const { latitude: lat, longitude: lng } = pos.coords;
       marcarMinhaLocalizacao(lat, lng);
       s.emit('vendedor:location', { vendedorId, lat, lng, tracking: 'gps', dia: selDia.value });
+      esconderErroGPS();
     },
     (err) => {
       console.warn('Erro de GPS:', err.message);
+      mostrarErroGPS(err);
     },
     { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
   );
