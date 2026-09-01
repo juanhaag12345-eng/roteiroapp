@@ -1,12 +1,14 @@
 const DIA_LABELS = {
-  seg: 'Segunda-feira', ter: 'Terça-feira', qua: 'Quarta-feira',
+  seg: 'Segunda-feira', ter: 'Terca-feira', qua: 'Quarta-feira',
   qui: 'Quinta-feira', sex: 'Sexta-feira',
 };
 const DIA_POR_JS_DAY = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab'];
-const ONLINE_THRESHOLD_MS = 20000; // considera "em rota" se atualizou nos últimos 20s
+const ONLINE_THRESHOLD_MS = 20000; // considera "em rota" se atualizou nos ultimos 20s
 
 let map;
 let vendedores = [];
+let clientes = [];
+let visitasRoteiro = []; // visitas do vendedor+dia selecionados na tela do gestor
 let localizacoes = {}; // vendedorId -> {lat,lng,updatedAt,tracking}
 let marcadores = {}; // vendedorId -> L.CircleMarker
 let selecionadoId = null;
@@ -14,6 +16,21 @@ let rotaPlanejadaLayer = null;
 
 const listaVendedoresEl = document.getElementById('listaVendedores');
 const selDiaGestor = document.getElementById('selDiaGestor');
+
+// ---- cadastro de roteiro (agenda dia a dia) direto na tela do gestor ----
+const roteiroSemVendedor = document.getElementById('roteiroSemVendedor');
+const roteiroConteudo = document.getElementById('roteiroConteudo');
+const roteiroVendedorNome = document.getElementById('roteiroVendedorNome');
+const roteiroDiaNome = document.getElementById('roteiroDiaNome');
+const listaRoteiro = document.getElementById('listaRoteiro');
+const roteiroVazio = document.getElementById('roteiroVazio');
+const selClienteRoteiro = document.getElementById('selClienteRoteiro');
+const btnAddParada = document.getElementById('btnAddParada');
+const msgRoteiro = document.getElementById('msgRoteiro');
+const novoClienteNome = document.getElementById('novoClienteNome');
+const novoClienteEndereco = document.getElementById('novoClienteEndereco');
+const btnNovoClienteParada = document.getElementById('btnNovoClienteParada');
+const msgNovoClienteRoteiro = document.getElementById('msgNovoClienteRoteiro');
 
 function initMap() {
   map = L.map('mapaGestor').setView([-23.5615, -46.6558], 12);
@@ -33,8 +50,8 @@ function preencherDias() {
 function tempoRelativo(ts) {
   const s = Math.round((Date.now() - ts) / 1000);
   if (s < 5) return 'agora mesmo';
-  if (s < 60) return `há ${s}s`;
-  return `há ${Math.round(s / 60)}min`;
+  if (s < 60) return `ha ${s}s`;
+  return `ha ${Math.round(s / 60)}min`;
 }
 
 function estaOnline(vendedorId) {
@@ -64,6 +81,7 @@ function renderLista() {
     el.addEventListener('click', () => {
       selecionadoId = el.dataset.id;
       renderLista();
+      atualizarRoteiro();
     });
   });
 }
@@ -98,9 +116,12 @@ function removerMarcador(vendedorId) {
 }
 
 async function carregarInicial() {
-  const [respV, respL] = await Promise.all([fetch('/api/vendedores'), fetch('/api/localizacoes')]);
+  const [respV, respL, respC] = await Promise.all([
+    fetch('/api/vendedores'), fetch('/api/localizacoes'), fetch('/api/clientes'),
+  ]);
   vendedores = await respV.json();
   localizacoes = await respL.json();
+  clientes = await respC.json();
 
   Object.entries(localizacoes).forEach(([vendedorId, loc]) => {
     atualizarMarcador(vendedorId, loc.lat, loc.lng);
@@ -108,7 +129,122 @@ async function carregarInicial() {
 
   if (!selecionadoId && vendedores.length) selecionadoId = vendedores[0].id;
   renderLista();
+  atualizarRoteiro();
 }
+
+// ---------------------------------------------------------------------
+// Cadastro de roteiro (agenda dia a dia) direto na tela do gestor — toda
+// alteracao aqui grava em /api/visitas, a mesma fonte de dados que
+// /api/rota/:vendedorId/:dia usa, entao a tela do vendedor ja reflete o
+// roteiro atualizado na proxima vez que ele tracar a rota.
+// ---------------------------------------------------------------------
+
+async function carregarClientes() {
+  const resp = await fetch('/api/clientes');
+  clientes = await resp.json();
+}
+
+async function atualizarRoteiro() {
+  if (!selecionadoId) {
+    roteiroSemVendedor.style.display = '';
+    roteiroConteudo.style.display = 'none';
+    return;
+  }
+  roteiroSemVendedor.style.display = 'none';
+  roteiroConteudo.style.display = '';
+
+  const dia = selDiaGestor.value;
+  roteiroVendedorNome.textContent = nomeDoVendedor(selecionadoId);
+  roteiroDiaNome.textContent = DIA_LABELS[dia] || dia;
+
+  const resp = await fetch(`/api/visitas?vendedorId=${selecionadoId}&dia=${dia}`);
+  visitasRoteiro = await resp.json();
+  renderRoteiro();
+}
+
+function renderRoteiro() {
+  if (visitasRoteiro.length === 0) {
+    listaRoteiro.innerHTML = '';
+    roteiroVazio.style.display = '';
+  } else {
+    roteiroVazio.style.display = 'none';
+    listaRoteiro.innerHTML = visitasRoteiro
+      .map((vi) => {
+        const cli = clientes.find((c) => c.id === vi.clienteId);
+        return `
+          <li class="item-roteiro">
+            <div><strong>${cli ? cli.nome : 'Cliente removido'}</strong><br><span class="small">${cli ? cli.endereco : ''}</span></div>
+            <button class="secundario" data-del-visita-roteiro="${vi.id}">remover</button>
+          </li>`;
+      })
+      .join('');
+    listaRoteiro.querySelectorAll('[data-del-visita-roteiro]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        await fetch(`/api/visitas/${btn.dataset.delVisitaRoteiro}`, { method: 'DELETE' });
+        await atualizarRoteiro();
+      });
+    });
+  }
+
+  const idsJaNoRoteiro = new Set(visitasRoteiro.map((vi) => vi.clienteId));
+  const disponiveis = clientes.filter((c) => !idsJaNoRoteiro.has(c.id));
+  selClienteRoteiro.innerHTML = disponiveis.length
+    ? disponiveis.map((c) => `<option value="${c.id}">${c.nome}</option>`).join('')
+    : '<option value="">Nenhum cliente disponivel</option>';
+  btnAddParada.disabled = disponiveis.length === 0;
+}
+
+btnAddParada.addEventListener('click', async () => {
+  if (!selecionadoId || !selClienteRoteiro.value) return;
+  msgRoteiro.innerHTML = '';
+  const resp = await fetch('/api/visitas', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ vendedorId: selecionadoId, clienteId: selClienteRoteiro.value, dia: selDiaGestor.value }),
+  });
+  const data = await resp.json();
+  if (!resp.ok) { msgRoteiro.innerHTML = `<div class="erro">${data.error}</div>`; return; }
+  await atualizarRoteiro();
+});
+
+btnNovoClienteParada.addEventListener('click', async () => {
+  if (!selecionadoId) return;
+  const nome = novoClienteNome.value.trim();
+  const endereco = novoClienteEndereco.value.trim();
+  if (!nome || !endereco) {
+    msgNovoClienteRoteiro.innerHTML = '<div class="erro">Preencha o nome e o endereco do cliente.</div>';
+    return;
+  }
+  msgNovoClienteRoteiro.innerHTML = '<p class="small">Geocodificando endereco…</p>';
+  try {
+    const respCliente = await fetch('/api/clientes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome, endereco }),
+    });
+    const cliente = await respCliente.json();
+    if (!respCliente.ok) throw new Error(cliente.error || 'Erro ao cadastrar cliente.');
+
+    await carregarClientes();
+
+    const respVisita = await fetch('/api/visitas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ vendedorId: selecionadoId, clienteId: cliente.id, dia: selDiaGestor.value }),
+    });
+    const visita = await respVisita.json();
+    if (!respVisita.ok) throw new Error(visita.error || 'Erro ao adicionar parada.');
+
+    msgNovoClienteRoteiro.innerHTML = '<div class="sucesso">Cliente cadastrado e adicionado ao roteiro!</div>';
+    novoClienteNome.value = '';
+    novoClienteEndereco.value = '';
+    await atualizarRoteiro();
+  } catch (err) {
+    msgNovoClienteRoteiro.innerHTML = `<div class="erro">${err.message}</div>`;
+  }
+});
+
+selDiaGestor.addEventListener('change', atualizarRoteiro);
 
 function numeroIcon(numero, cor) {
   return L.divIcon({
@@ -182,5 +318,5 @@ document.getElementById('btnVerRota').addEventListener('click', verRotaPlanejada
     renderLista();
   });
 
-  setInterval(renderLista, 5000); // atualiza "há Xs" e pill online/offline
+  setInterval(renderLista, 5000); // atualiza "ha Xs" e pill online/offline
 })();
