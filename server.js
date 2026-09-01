@@ -18,10 +18,10 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/vendor/leaflet', express.static(path.join(__dirname, 'node_modules', 'leaflet', 'dist')));
 
-// ---------- popular dados de demonstração no primeiro boot ----------
+// ---------- popular dados de demonstracao no primeiro boot ----------
 seedIfEmpty();
 
-// ---------- estado em memória de localização em tempo real ----------
+// ---------- estado em memoria de localizacao em tempo real ----------
 // vendedorId -> { lat, lng, updatedAt, tracking: 'gps' | 'sim', dia }
 const localizacoes = {};
 
@@ -37,7 +37,7 @@ app.post('/api/vendedores', async (req, res) => {
   try {
     const { nome, email, cor, origemEndereco } = req.body;
     if (!nome || !origemEndereco) {
-      return res.status(400).json({ error: 'nome e origemEndereco são obrigatórios.' });
+      return res.status(400).json({ error: 'nome e origemEndereco sao obrigatorios.' });
     }
     const geo = await geocode(origemEndereco);
     const data = db.load();
@@ -79,7 +79,7 @@ app.post('/api/clientes', async (req, res) => {
   try {
     const { nome, endereco } = req.body;
     if (!nome || !endereco) {
-      return res.status(400).json({ error: 'nome e endereco são obrigatórios.' });
+      return res.status(400).json({ error: 'nome e endereco sao obrigatorios.' });
     }
     const geo = await geocode(endereco);
     const data = db.load();
@@ -114,7 +114,7 @@ app.get('/api/visitas', (req, res) => {
 app.post('/api/visitas', (req, res) => {
   const { vendedorId, clienteId, dia } = req.body;
   if (!vendedorId || !clienteId || !DIAS.includes(dia)) {
-    return res.status(400).json({ error: `dados inválidos. dia deve ser um de: ${DIAS.join(', ')}` });
+    return res.status(400).json({ error: `dados invalidos. dia deve ser um de: ${DIAS.join(', ')}` });
   }
   const data = db.load();
   const visita = { id: crypto.randomUUID(), vendedorId, clienteId, dia };
@@ -137,8 +137,8 @@ app.get('/api/rota/:vendedorId/:dia', async (req, res) => {
   const { vendedorId, dia } = req.params;
   const data = db.load();
   const vendedor = data.vendedores.find((v) => v.id === vendedorId);
-  if (!vendedor) return res.status(404).json({ error: 'Vendedor não encontrado.' });
-  if (!DIAS.includes(dia)) return res.status(400).json({ error: `dia inválido. Use um de: ${DIAS.join(', ')}` });
+  if (!vendedor) return res.status(404).json({ error: 'Vendedor nao encontrado.' });
+  if (!DIAS.includes(dia)) return res.status(400).json({ error: `dia invalido. Use um de: ${DIAS.join(', ')}` });
 
   const visitasDoDia = data.visitas.filter((v) => v.vendedorId === vendedorId && v.dia === dia);
   const clientes = visitasDoDia
@@ -164,11 +164,12 @@ app.get('/api/rota/:vendedorId/:dia', async (req, res) => {
     distanciaKm: resultado.distanceKm,
     duracaoMin: resultado.durationMin,
     fonte: resultado.source, // 'osrm' (ruas reais) ou 'haversine' (linha reta, fallback)
+    steps: resultado.steps || [], // instrucoes de manobra turn-by-turn (so quando fonte === 'osrm')
   });
 });
 
 // ---------------------------------------------------------------------
-// API: geocodificação avulsa (usada pelas telas de cadastro para pré-visualizar)
+// API: geocodificacao avulsa (usada pelas telas de cadastro para pre-visualizar)
 // ---------------------------------------------------------------------
 app.post('/api/geocode', async (req, res) => {
   try {
@@ -180,7 +181,7 @@ app.post('/api/geocode', async (req, res) => {
 });
 
 // ---------------------------------------------------------------------
-// API: snapshot de localizações atuais (para o painel do gestor no load)
+// API: snapshot de localizacoes atuais (para o painel do gestor no load)
 // ---------------------------------------------------------------------
 app.get('/api/localizacoes', (req, res) => {
   res.json(localizacoes);
