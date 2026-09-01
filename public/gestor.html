@@ -9,8 +9,8 @@
 </head>
 <body>
   <header class="topbar">
-    <h1>🗺️ Painel do gestor</h1>
-    <nav><a href="/">início</a><a href="/vendedor.html">tela do vendedor</a></nav>
+    <h1>🗺 Painel do gestor</h1>
+    <nav><a href="/">inicio</a><a href="/vendedor.html">tela do vendedor</a></nav>
   </header>
   <main>
     <div class="row">
@@ -28,6 +28,48 @@
         <select id="selDiaGestor"></select>
         <button id="btnVerRota" class="secundario">Mostrar rota do vendedor selecionado</button>
         <div id="msgRotaGestor"></div>
+      </div>
+    </div>
+
+    <div class="card" id="cardRoteiro">
+      <h3 style="margin-top:0">Cadastrar roteiro do vendedor</h3>
+      <p class="small">Selecione um vendedor na lista acima e o dia. As paradas cadastradas aqui atualizam automaticamente a rota que aparece na tela do vendedor.</p>
+
+      <div id="roteiroSemVendedor" class="aviso">Selecione um vendedor na lista para cadastrar o roteiro dele.</div>
+
+      <div id="roteiroConteudo" style="display:none">
+        <h4 style="margin-bottom:6px">Paradas de <span id="roteiroVendedorNome"></span> — <span id="roteiroDiaNome"></span></h4>
+        <ol class="lista-paradas" id="listaRoteiro"></ol>
+        <p class="small" id="roteiroVazio" style="display:none">Nenhuma parada cadastrada para este dia ainda.</p>
+
+        <div class="row" style="align-items:flex-end;margin-top:14px">
+          <div class="col">
+            <label for="selClienteRoteiro">Adicionar cliente ja cadastrado</label>
+            <select id="selClienteRoteiro"></select>
+          </div>
+          <div class="col" style="max-width:200px">
+            <button id="btnAddParada">Adicionar parada</button>
+          </div>
+        </div>
+        <div id="msgRoteiro"></div>
+
+        <hr style="margin:16px 0;border:none;border-top:1px solid var(--borda)" />
+
+        <h4 style="margin-bottom:6px">Ou cadastre um cliente novo e adicione direto ao roteiro</h4>
+        <div class="row" style="align-items:flex-end">
+          <div class="col">
+            <label for="novoClienteNome">Nome do cliente</label>
+            <input type="text" id="novoClienteNome" placeholder="Nome do cliente" />
+          </div>
+          <div class="col">
+            <label for="novoClienteEndereco">Endereco completo</label>
+            <input type="text" id="novoClienteEndereco" placeholder="Rua, numero, cidade - UF" />
+          </div>
+          <div class="col" style="max-width:200px">
+            <button id="btnNovoClienteParada" class="secundario">Cadastrar e adicionar</button>
+          </div>
+        </div>
+        <div id="msgNovoClienteRoteiro"></div>
       </div>
     </div>
   </main>
