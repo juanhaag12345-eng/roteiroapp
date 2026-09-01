@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>VendRoute — Vendedor</title>
+  <title>VendRoute - Vendedor</title>
   <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
   <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
   <header class="topbar">
-    <h1>📍 Rota do vendedor</h1>
-    <nav><a href="/">início</a><a href="/gestor.html">painel do gestor</a></nav>
+    <h1>Rota do vendedor</h1>
+    <nav><a href="/">inicio</a><a href="/gestor.html">painel do gestor</a></nav>
   </header>
   <main>
     <div class="card">
@@ -24,13 +24,13 @@
           <select id="selDia"></select>
         </div>
       </div>
-      <button id="btnTracar">Traçar melhor rota</button>
+      <button id="btnTracar">Tracar melhor rota</button>
       <div id="msgRota"></div>
       <div class="stat-row" id="statsRota" style="display:none">
-        <div class="stat"><strong id="statDistancia">–</strong>distância estimada</div>
-        <div class="stat"><strong id="statDuracao">–</strong>tempo estimado</div>
-        <div class="stat"><strong id="statParadas">–</strong>paradas</div>
-        <div class="stat"><strong id="statFonte">–</strong>cálculo</div>
+        <div class="stat"><strong id="statDistancia">-</strong>distancia estimada</div>
+        <div class="stat"><strong id="statDuracao">-</strong>tempo estimado</div>
+        <div class="stat"><strong id="statParadas">-</strong>paradas</div>
+        <div class="stat"><strong id="statFonte">-</strong>calculo</div>
       </div>
     </div>
 
@@ -40,17 +40,9 @@
     </div>
 
     <div class="card">
-      <h3 style="margin-top:0">📡 Rastreamento em tempo real</h3>
-      <p class="small">Compartilhe sua localização para o gestor acompanhar ao vivo no painel.</p>
-      <div class="row">
-        <div class="col">
-          <label><input type="radio" name="modoRastreio" value="gps" checked /> Usar GPS real do celular</label>
-          <label><input type="radio" name="modoRastreio" value="sim" /> Simular movimento ao longo da rota</label>
-        </div>
-      </div>
-      <button id="btnIniciar">Iniciar rastreamento</button>
-      <button id="btnParar" class="secundario" disabled>Parar</button>
-      <div id="msgRastreio"></div>
+      <h3 style="margin-top:0">Rastreamento em tempo real</h3>
+      <p class="small">Sua localizacao e compartilhada automaticamente com o gestor enquanto esta tela estiver aberta - nao e preciso ativar nada.</p>
+      <div id="statusRastreio" class="aviso">Ativando rastreamento...</div>
     </div>
   </main>
 
