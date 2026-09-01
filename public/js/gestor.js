@@ -18,6 +18,7 @@ const listaVendedoresEl = document.getElementById('listaVendedores');
 const selDiaGestor = document.getElementById('selDiaGestor');
 
 // ---- cadastro de roteiro (agenda dia a dia) direto na tela do gestor ----
+const selVendedorRoteiro = document.getElementById('selVendedorRoteiro');
 const roteiroSemVendedor = document.getElementById('roteiroSemVendedor');
 const roteiroConteudo = document.getElementById('roteiroConteudo');
 const roteiroVendedorNome = document.getElementById('roteiroVendedorNome');
@@ -31,6 +32,12 @@ const novoClienteNome = document.getElementById('novoClienteNome');
 const novoClienteEndereco = document.getElementById('novoClienteEndereco');
 const btnNovoClienteParada = document.getElementById('btnNovoClienteParada');
 const msgNovoClienteRoteiro = document.getElementById('msgNovoClienteRoteiro');
+const novoVendedorNome = document.getElementById('novoVendedorNome');
+const novoVendedorEmail = document.getElementById('novoVendedorEmail');
+const novoVendedorCor = document.getElementById('novoVendedorCor');
+const novoVendedorOrigem = document.getElementById('novoVendedorOrigem');
+const btnNovoVendedor = document.getElementById('btnNovoVendedor');
+const msgNovoVendedor = document.getElementById('msgNovoVendedor');
 
 function initMap() {
   map = L.map('mapaGestor').setView([-23.5615, -46.6558], 12);
@@ -144,7 +151,16 @@ async function carregarClientes() {
   clientes = await resp.json();
 }
 
+function renderSelVendedorRoteiro() {
+  selVendedorRoteiro.innerHTML = vendedores.length
+    ? vendedores.map((v) => `<option value="${v.id}">${v.nome}</option>`).join('')
+    : '<option value="">Nenhum vendedor cadastrado</option>';
+  if (selecionadoId) selVendedorRoteiro.value = selecionadoId;
+}
+
 async function atualizarRoteiro() {
+  renderSelVendedorRoteiro();
+
   if (!selecionadoId) {
     roteiroSemVendedor.style.display = '';
     roteiroConteudo.style.display = 'none';
@@ -245,6 +261,47 @@ btnNovoClienteParada.addEventListener('click', async () => {
 });
 
 selDiaGestor.addEventListener('change', atualizarRoteiro);
+
+selVendedorRoteiro.addEventListener('change', () => {
+  if (!selVendedorRoteiro.value) return;
+  selecionadoId = selVendedorRoteiro.value;
+  renderLista();
+  atualizarRoteiro();
+});
+
+btnNovoVendedor.addEventListener('click', async () => {
+  const nome = novoVendedorNome.value.trim();
+  const email = novoVendedorEmail.value.trim();
+  const cor = novoVendedorCor.value.trim() || '#457b9d';
+  const origemEndereco = novoVendedorOrigem.value.trim();
+  if (!nome || !origemEndereco) {
+    msgNovoVendedor.innerHTML = '<div class="erro">Preencha ao menos o nome e o endereco de partida.</div>';
+    return;
+  }
+  msgNovoVendedor.innerHTML = '<p class="small">Geocodificando endereco…</p>';
+  try {
+    const resp = await fetch('/api/vendedores', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome, email, cor, origemEndereco }),
+    });
+    const vendedor = await resp.json();
+    if (!resp.ok) throw new Error(vendedor.error || 'Erro ao cadastrar vendedor.');
+
+    vendedores.push(vendedor);
+    selecionadoId = vendedor.id;
+    renderLista();
+    atualizarRoteiro();
+
+    msgNovoVendedor.innerHTML = '<div class="sucesso">Vendedor cadastrado! Monte o roteiro dele ali em cima.</div>';
+    novoVendedorNome.value = '';
+    novoVendedorEmail.value = '';
+    novoVendedorCor.value = '#457b9d';
+    novoVendedorOrigem.value = '';
+  } catch (err) {
+    msgNovoVendedor.innerHTML = `<div class="erro">${err.message}</div>`;
+  }
+});
 
 function numeroIcon(numero, cor) {
   return L.divIcon({
