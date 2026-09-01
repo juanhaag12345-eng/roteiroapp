@@ -13,11 +13,15 @@ const statsRota = document.getElementById('statsRota');
 const erroRastreio = document.getElementById('erroRastreio');
 const btnNavegar = document.getElementById('btnNavegar');
 const btnPararNav = document.getElementById('btnPararNav');
-const navCard = document.getElementById('navCard');
+const btnRecentrar = document.getElementById('btnRecentrar');
+const navFullscreen = document.getElementById('navFullscreen');
 const navSeta = document.getElementById('navSeta');
 const navTexto = document.getElementById('navTexto');
 const navSub = document.getElementById('navSub');
 const navDistancia = document.getElementById('navDistancia');
+const navTempoRestante = document.getElementById('navTempoRestante');
+const navDistRestante = document.getElementById('navDistRestante');
+const navEta = document.getElementById('navEta');
 
 let map, origemLayer, paradasLayer, linhaLayer, minhaLocLayer;
 let vendedores = [];
@@ -32,6 +36,14 @@ let guiaSteps = [];
 let guiaIdx = 0;
 let navegando = false;
 let navMapCentralizado = false;
+
+// Mapa dedicado de navegacao (tela cheia), so criado quando o vendedor
+// realmente da o start na rota.
+let mapaNav = null;
+let navRotaLayer = null;
+let navParadasLayer = null;
+let navMinhaLocLayer = null;
+let navUltimaPos = null;
 
 function initMap() {
   map = L.map('mapa').setView([-23.5505, -46.6333], 12);
@@ -204,11 +216,11 @@ function iniciarRastreioAutomatico(vendedorId) {
   const s = garantirSocket();
   watchId = navigator.geolocation.watchPosition(
     (pos) => {
-      const { latitude: lat, longitude: lng } = pos.coords;
+      const { latitude: lat, longitude: lng, heading } = pos.coords;
       marcarMinhaLocalizacao(lat, lng);
       s.emit('vendedor:location', { vendedorId, lat, lng, tracking: 'gps', dia: selDia.value });
       esconderErroGPS();
-      processarPosicaoNavegacao(lat, lng);
+      processarPosicaoNavegacao(lat, lng, heading);
     },
     (err) => {
       console.warn('Erro de GPS:', err.message);
@@ -278,6 +290,7 @@ function construirGuiaSteps(data) {
       distanciaInicial: step.distanceM,
     }));
   }
+  const distanciaMediaM = data.paradas.length ? ((data.distanciaKm || 0) * 1000) / data.paradas.length : 0;
   return data.paradas.map((p, idx) => ({
     instrucao: `Siga em direcao a ${p.cliente.nome} (linha reta, sem rota de ruas disponivel)`,
     seta: '\u2191',
@@ -285,7 +298,7 @@ function construirGuiaSteps(data) {
     lng: p.cliente.lng,
     legIndex: idx,
     chegada: true,
-    distanciaInicial: null,
+    distanciaInicial: distanciaMediaM,
   }));
 }
 
@@ -303,20 +316,94 @@ function haversineMetros(lat1, lng1, lat2, lng2) {
   return 2 * R * Math.asin(Math.sqrt(a));
 }
 
+function initMapaNav() {
+  if (mapaNav) return;
+  mapaNav = L.map('mapaNav', { zoomControl: false, attributionControl: true }).setView(
+    [-23.5505, -46.6333],
+    16
+  );
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors',
+    maxZoom: 19,
+  }).addTo(mapaNav);
+}
+
+function desenharRotaNav() {
+  if (!mapaNav || !rotaAtual) return;
+  [navRotaLayer, navParadasLayer].forEach((l) => l && mapaNav.removeLayer(l));
+
+  const linhaCoords = rotaAtual.geometryLatLng.map((p) => [p.lat, p.lng]);
+  navRotaLayer = L.polyline(linhaCoords, { color: '#1a73e8', weight: 6, opacity: 0.9 }).addTo(mapaNav);
+
+  const marcadores = rotaAtual.paradas.map((p) =>
+    L.marker([p.cliente.lat, p.cliente.lng], { icon: numeroIcon(p.posicao, rotaAtual.vendedor.cor) }).bindPopup(
+      `<strong>${p.posicao}. ${p.cliente.nome}</strong><br>${p.cliente.endereco}`
+    )
+  );
+  navParadasLayer = L.layerGroup(marcadores).addTo(mapaNav);
+}
+
+function bearingGraus(lat1, lng1, lat2, lng2) {
+  const toRad = (d) => (d * Math.PI) / 180;
+  const toDeg = (r) => (r * 180) / Math.PI;
+  const dLng = toRad(lng2 - lng1);
+  const y = Math.sin(dLng) * Math.cos(toRad(lat2));
+  const x =
+    Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) -
+    Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(dLng);
+  return (toDeg(Math.atan2(y, x)) + 360) % 360;
+}
+
+function setaUsuarioIcon(anguloGraus) {
+  const angulo = Number.isFinite(anguloGraus) ? anguloGraus : 0;
+  return L.divIcon({
+    className: '',
+    html: `<div class="seta-usuario" style="transform:rotate(${angulo}deg)">
+             <svg width="34" height="34" viewBox="0 0 34 34">
+               <circle cx="17" cy="17" r="15" fill="#1a73e8" stroke="#fff" stroke-width="3"/>
+               <path d="M17 6 L24 23 L17 19 L10 23 Z" fill="#fff"/>
+             </svg>
+           </div>`,
+    iconSize: [34, 34],
+    iconAnchor: [17, 17],
+  });
+}
+
 function iniciarNavegacao() {
   if (!rotaAtual || !rotaAtual.paradas || rotaAtual.paradas.length === 0) return;
   guiaSteps = construirGuiaSteps(rotaAtual);
   guiaIdx = 0;
   navegando = true;
   navMapCentralizado = false;
-  navCard.style.display = 'block';
+
+  navFullscreen.style.display = 'block';
+  document.body.style.overflow = 'hidden';
+
+  initMapaNav();
+  setTimeout(() => {
+    mapaNav.invalidateSize();
+    desenharRotaNav();
+    if (navUltimaPos) {
+      mapaNav.setView([navUltimaPos.lat, navUltimaPos.lng], 17);
+      navMapCentralizado = true;
+      // Usa a ultima posicao de GPS conhecida para desenhar o marcador do
+      // vendedor e atualizar o painel na hora, sem esperar o proximo evento
+      // de geolocalizacao (que pode demorar se o vendedor estiver parado).
+      processarPosicaoNavegacao(navUltimaPos.lat, navUltimaPos.lng);
+    } else {
+      const linhaCoords = rotaAtual.geometryLatLng.map((p) => [p.lat, p.lng]);
+      mapaNav.fitBounds(L.latLngBounds(linhaCoords), { padding: [40, 40] });
+    }
+  }, 50);
+
   atualizarPainelNav();
-  navCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  atualizarBottomBar();
 }
 
 function pararNavegacao() {
   navegando = false;
-  navCard.style.display = 'none';
+  navFullscreen.style.display = 'none';
+  document.body.style.overflow = '';
 }
 
 function atualizarPainelNav(distanciaMetros) {
@@ -336,14 +423,60 @@ function atualizarPainelNav(distanciaMetros) {
   navDistancia.textContent = dist != null ? formatarDistancia(dist) : '';
 }
 
-function processarPosicaoNavegacao(lat, lng) {
-  if (!navegando) return;
+function atualizarBottomBar(distanciaAoProximoMetros) {
+  if (!rotaAtual) return;
+
+  const distAtual =
+    distanciaAoProximoMetros != null
+      ? distanciaAoProximoMetros
+      : (guiaSteps[guiaIdx] && guiaSteps[guiaIdx].distanciaInicial) || 0;
+
+  let restanteM = distAtual || 0;
+  for (let i = guiaIdx + 1; i < guiaSteps.length; i++) {
+    restanteM += guiaSteps[i].distanciaInicial || 0;
+  }
+
+  const distanciaTotalM = (rotaAtual.distanciaKm || 0) * 1000;
+  const duracaoTotalS = (rotaAtual.duracaoMin || 0) * 60;
+  const velocidadeMS =
+    distanciaTotalM > 0 && duracaoTotalS > 0 ? distanciaTotalM / duracaoTotalS : (30 * 1000) / 3600;
+  const restanteMinutos = velocidadeMS > 0 ? restanteM / velocidadeMS / 60 : 0;
+
+  navDistRestante.textContent = formatarDistancia(restanteM);
+  navTempoRestante.textContent = `${Math.max(0, Math.round(restanteMinutos))} min`;
+
+  const eta = new Date(Date.now() + restanteMinutos * 60000);
+  const horas = String(eta.getHours()).padStart(2, '0');
+  const minutos = String(eta.getMinutes()).padStart(2, '0');
+  navEta.textContent = `chegada as ${horas}:${minutos}`;
+}
+
+function processarPosicaoNavegacao(lat, lng, heading) {
+  navUltimaPos = { lat, lng };
+  if (!navegando || !mapaNav) return;
+
+  const proximoAlvo = guiaIdx < guiaSteps.length ? guiaSteps[guiaIdx] : null;
+  const anguloPuck =
+    heading != null && !Number.isNaN(heading)
+      ? heading
+      : proximoAlvo
+      ? bearingGraus(lat, lng, proximoAlvo.lat, proximoAlvo.lng)
+      : 0;
+
+  if (!navMinhaLocLayer) {
+    navMinhaLocLayer = L.marker([lat, lng], { icon: setaUsuarioIcon(anguloPuck), zIndexOffset: 1000 }).addTo(
+      mapaNav
+    );
+  } else {
+    navMinhaLocLayer.setLatLng([lat, lng]);
+    navMinhaLocLayer.setIcon(setaUsuarioIcon(anguloPuck));
+  }
 
   if (!navMapCentralizado) {
-    map.setView([lat, lng], 17);
+    mapaNav.setView([lat, lng], 17);
     navMapCentralizado = true;
   } else {
-    map.panTo([lat, lng]);
+    mapaNav.panTo([lat, lng]);
   }
 
   if (guiaIdx >= guiaSteps.length) return;
@@ -362,17 +495,25 @@ function processarPosicaoNavegacao(lat, lng) {
       if (guiaIdx >= guiaSteps.length) {
         navSub.textContent = 'Rota concluida!';
       }
+      atualizarBottomBar(0);
       return;
     }
     guiaIdx++;
   }
 
   atualizarPainelNav(distancia);
+  atualizarBottomBar(distancia);
 }
 
 document.getElementById('btnTracar').addEventListener('click', tracarRota);
 btnNavegar.addEventListener('click', iniciarNavegacao);
 btnPararNav.addEventListener('click', pararNavegacao);
+btnRecentrar.addEventListener('click', () => {
+  if (navUltimaPos && mapaNav) {
+    mapaNav.setView([navUltimaPos.lat, navUltimaPos.lng], 17);
+    navMapCentralizado = true;
+  }
+});
 
 selVendedor.addEventListener('change', () => {
   btnNavegar.style.display = 'none';
