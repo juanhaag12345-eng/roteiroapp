@@ -131,3 +131,14 @@ th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--bord
 th { color: var(--cinza); font-size: 0.8rem; text-transform: uppercase; }
 
 .small { font-size: 0.82rem; color: var(--cinza); }
+
+.nav-card { border: 2px solid var(--azul); }
+.nav-instrucao { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+.nav-seta {
+  font-size: 1.8rem; width: 52px; height: 52px; border-radius: 50%;
+  background: var(--azul); color: #fff; display: flex; align-items: center;
+  justify-content: center; flex-shrink: 0;
+}
+.nav-texto { font-size: 1.1rem; font-weight: 700; }
+.nav-sub { font-size: 0.85rem; color: var(--cinza); margin-top: 2px; }
+.nav-distancia { font-size: 1.7rem; font-weight: 800; color: var(--azul); margin-bottom: 12px; }
