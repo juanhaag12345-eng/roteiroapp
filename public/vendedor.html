@@ -36,16 +36,37 @@
       <div id="erroRastreio" class="erro" style="display:none"></div>
     </div>
 
-    <div class="card nav-card" id="navCard" style="display:none">
-      <div class="nav-instrucao">
+    <div class="nav-fullscreen" id="navFullscreen" style="display:none">
+      <div id="mapaNav"></div>
+
+      <div class="nav-banner">
         <div class="nav-seta" id="navSeta">^</div>
-        <div>
+        <div class="nav-banner-texto">
+          <div class="nav-distancia" id="navDistancia">-</div>
           <div class="nav-texto" id="navTexto">-</div>
           <div class="nav-sub" id="navSub">-</div>
         </div>
       </div>
-      <div class="nav-distancia" id="navDistancia"></div>
-      <button id="btnPararNav" class="secundario">Parar navegacao</button>
+
+      <button id="btnPararNav" class="nav-btn-parar" title="Parar navegacao">&times;</button>
+      <button id="btnRecentrar" class="nav-btn-recentrar" title="Centralizar no GPS">
+        <svg width="22" height="22" viewBox="0 0 22 22">
+          <circle cx="11" cy="11" r="3" fill="none" stroke="currentColor" stroke-width="2" />
+          <line x1="11" y1="1" x2="11" y2="5" stroke="currentColor" stroke-width="2" />
+          <line x1="11" y1="17" x2="11" y2="21" stroke="currentColor" stroke-width="2" />
+          <line x1="1" y1="11" x2="5" y2="11" stroke="currentColor" stroke-width="2" />
+          <line x1="17" y1="11" x2="21" y2="11" stroke="currentColor" stroke-width="2" />
+        </svg>
+      </button>
+
+      <div class="nav-bottombar">
+        <div class="nav-bottombar-tempo" id="navTempoRestante">-</div>
+        <div class="nav-bottombar-info">
+          <span id="navDistRestante">-</span>
+          <span>&middot;</span>
+          <span id="navEta">-</span>
+        </div>
+      </div>
     </div>
 
     <div class="card">
