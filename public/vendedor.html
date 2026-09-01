@@ -25,6 +25,7 @@
         </div>
       </div>
       <button id="btnTracar">Tracar melhor rota</button>
+      <button id="btnNavegar" class="secundario" style="display:none">Iniciar navegacao</button>
       <div id="msgRota"></div>
       <div class="stat-row" id="statsRota" style="display:none">
         <div class="stat"><strong id="statDistancia">-</strong>distancia estimada</div>
@@ -33,6 +34,18 @@
         <div class="stat"><strong id="statFonte">-</strong>calculo</div>
       </div>
       <div id="erroRastreio" class="erro" style="display:none"></div>
+    </div>
+
+    <div class="card nav-card" id="navCard" style="display:none">
+      <div class="nav-instrucao">
+        <div class="nav-seta" id="navSeta">^</div>
+        <div>
+          <div class="nav-texto" id="navTexto">-</div>
+          <div class="nav-sub" id="navSub">-</div>
+        </div>
+      </div>
+      <div class="nav-distancia" id="navDistancia"></div>
+      <button id="btnPararNav" class="secundario">Parar navegacao</button>
     </div>
 
     <div class="card">
