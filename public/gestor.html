@@ -33,9 +33,16 @@
 
     <div class="card" id="cardRoteiro">
       <h3 style="margin-top:0">Cadastrar roteiro do vendedor</h3>
-      <p class="small">Selecione um vendedor na lista acima e o dia. As paradas cadastradas aqui atualizam automaticamente a rota que aparece na tela do vendedor.</p>
+      <p class="small">Escolha o vendedor abaixo (ou cadastre um novo no formulario no final) e o dia acima. As paradas cadastradas aqui atualizam automaticamente a rota que aparece na tela do vendedor.</p>
 
-      <div id="roteiroSemVendedor" class="aviso">Selecione um vendedor na lista para cadastrar o roteiro dele.</div>
+      <div class="row">
+        <div class="col" style="max-width:320px">
+          <label for="selVendedorRoteiro">Vendedor</label>
+          <select id="selVendedorRoteiro"></select>
+        </div>
+      </div>
+
+      <div id="roteiroSemVendedor" class="aviso" style="display:none">Nenhum vendedor cadastrado ainda. Use o formulario "Cadastrar vendedor novo" abaixo para comecar.</div>
 
       <div id="roteiroConteudo" style="display:none">
         <h4 style="margin-bottom:6px">Paradas de <span id="roteiroVendedorNome"></span> — <span id="roteiroDiaNome"></span></h4>
@@ -71,6 +78,35 @@
         </div>
         <div id="msgNovoClienteRoteiro"></div>
       </div>
+
+      <hr style="margin:16px 0;border:none;border-top:1px solid var(--borda)" />
+
+      <h4 style="margin-bottom:6px">Cadastrar vendedor novo</h4>
+      <p class="small">Comece um roteiro do zero cadastrando um vendedor direto por aqui.</p>
+      <div class="row" style="align-items:flex-end">
+        <div class="col">
+          <label for="novoVendedorNome">Nome</label>
+          <input type="text" id="novoVendedorNome" placeholder="Nome do vendedor" />
+        </div>
+        <div class="col">
+          <label for="novoVendedorEmail">E-mail (opcional)</label>
+          <input type="email" id="novoVendedorEmail" placeholder="email@exemplo.com" />
+        </div>
+        <div class="col" style="max-width:140px">
+          <label for="novoVendedorCor">Cor no mapa</label>
+          <input type="text" id="novoVendedorCor" placeholder="#457b9d" value="#457b9d" />
+        </div>
+      </div>
+      <div class="row" style="align-items:flex-end">
+        <div class="col">
+          <label for="novoVendedorOrigem">Endereco de partida (base do vendedor)</label>
+          <input type="text" id="novoVendedorOrigem" placeholder="Rua, numero, cidade - UF" />
+        </div>
+        <div class="col" style="max-width:200px">
+          <button id="btnNovoVendedor" class="secundario">Cadastrar vendedor</button>
+        </div>
+      </div>
+      <div id="msgNovoVendedor"></div>
     </div>
   </main>
 
