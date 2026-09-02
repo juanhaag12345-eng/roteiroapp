@@ -140,7 +140,7 @@ async function carregarInicial() {
 }
 
 // ---------------------------------------------------------------------
-// Cadastro de roteiro (agenda dia a dia) direto na tela do gestor â toda
+// Cadastro de roteiro (agenda dia a dia) direto na tela do gestor - toda
 // alteracao aqui grava em /api/visitas, a mesma fonte de dados que
 // /api/rota/:vendedorId/:dia usa, entao a tela do vendedor ja reflete o
 // roteiro atualizado na proxima vez que ele tracar a rota.
@@ -231,7 +231,7 @@ btnNovoClienteParada.addEventListener('click', async () => {
     msgNovoClienteRoteiro.innerHTML = '<div class="erro">Preencha o nome e o endereco do cliente.</div>';
     return;
   }
-  msgNovoClienteRoteiro.innerHTML = '<p class="small">Geocodificando enderecoâ¦</p>';
+  msgNovoClienteRoteiro.innerHTML = '<p class="small">Geocodificando endereco...</p>';
   try {
     const respCliente = await fetch('/api/clientes', {
       method: 'POST',
@@ -251,7 +251,7 @@ btnNovoClienteParada.addEventListener('click', async () => {
     const visita = await respVisita.json();
     if (!respVisita.ok) throw new Error(visita.error || 'Erro ao adicionar parada.');
 
-    msgNovoClienteRoteiro"énnerHTML = '<div class="sucesso">Cliente cadastrado e adicionado ao roteiro!</div>';
+    msgNovoClienteRoteiro.innerHTML = '<div class="sucesso">Cliente cadastrado e adicionado ao roteiro!</div>';
     novoClienteNome.value = '';
     novoClienteEndereco.value = '';
     await atualizarRoteiro();
@@ -278,7 +278,7 @@ btnNovoVendedor.addEventListener('click', async () => {
     msgNovoVendedor.innerHTML = '<div class="erro">Preencha ao menos o nome e o endereco de partida.</div>';
     return;
   }
-  msgNovoVendedor.innerHTML = '<p class="small">Geocodificando enderecoâ¦</p>';
+  msgNovoVendedor.innerHTML = '<p class="small">Geocodificando endereco...</p>';
   try {
     const resp = await fetch('/api/vendedores', {
       method: 'POST',
@@ -319,7 +319,7 @@ async function verRotaPlanejada() {
     return;
   }
   const dia = selDiaGestor.value;
-  msg.innerHTML = '<p class="small">Carregando rotaâ¦</p>';
+  msg.innerHTML = '<p class="small">Carregando rota...</p>';
 
   if (rotaPlanejadaLayer) { map.removeLayer(rotaPlanejadaLayer); rotaPlanejadaLayer = null; }
 
@@ -350,7 +350,7 @@ async function verRotaPlanejada() {
     rotaPlanejadaLayer = L.layerGroup(camadas).addTo(map);
     map.fitBounds(L.latLngBounds(linhaCoords), { padding: [30, 30] });
 
-    msg.innerHTML = `<p class="small">${data.paradas.length} paradas Â· ${data.distanciaKm} km Â· ${data.duracaoMin} min (${data.fonte === 'osrm' ? 'ruas reais' : 'estimativa'})</p>`;
+    msg.innerHTML = `<p class="small">${data.paradas.length} paradas - ${data.distanciaKm} km - ${data.duracaoMin} min (${data.fonte === 'osrm' ? 'ruas reais' : 'estimativa'})</p>`;
   } catch (err) {
     msg.innerHTML = `<div class="erro">${err.message}</div>`;
   }
